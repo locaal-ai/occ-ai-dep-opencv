@@ -39,7 +39,7 @@ cmake opencv -B build_$Configuration `
   -DBUILD_opencv_imgproc=ON `
   -DBUILD_opencv_ml=OFF `
   -DBUILD_opencv_objdetect=OFF `
-  -DBUILD_opencv_photo=OFF `
+  -DBUILD_opencv_photo=ON `
   -DBUILD_opencv_stitching=OFF `
   -DBUILD_opencv_video=OFF `
   -DBUILD_opencv_videoio=OFF `
