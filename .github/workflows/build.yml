@@ -70,17 +70,20 @@ jobs:
           submodules: "recursive"
 
       - name: "Run Build-Windows.ps1"
-        run: "./Build-Windows.ps1 -Config ${{ matrix.config }}"
+        run: "./Build-Windows.ps1 -Configuration ${{ matrix.config }}"
 
       - uses: "actions/upload-artifact@v3"
         with:
-          name: "opencv-linux-${{ matrix.config }}"
+          name: "opencv-windows-${{ matrix.config }}"
           path: "release/opencv-windows-${{ matrix.config }}.zip"
 
   Release:
     runs-on: "ubuntu-22.04"
     if: "github.event_name == 'push' && contains(github.ref, 'refs/tags/')"
-    needs: [BuildMac, BuildLinux, BuildWindows]
+    needs:
+      - "BuildMac"
+      - "BuildLinux"
+      - "BuildWindows"
     permissions:
       contents: "write"
     steps:
@@ -93,7 +96,7 @@ jobs:
         uses: "actions/download-artifact@v3"
 
       - name: "Create Release"
-        uses: "softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5"
+        uses: "softprops/action-gh-release@v1"
         with:
           draft: true
           tag_name: "${{ steps.metadata.outputs.version }}"
