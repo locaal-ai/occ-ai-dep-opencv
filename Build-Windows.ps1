@@ -1,4 +1,4 @@
-Param($Configuration)
+Param($Configuration, $Version)
 
 cmake opencv -B build_$Configuration `
   -DOPENCV_FORCE_3RDPARTY_BUILD=ON `
@@ -68,6 +68,7 @@ cmake opencv -B build_$Configuration `
   -DWITH_OPENCL=OFF `
   -DWITH_IPP=OFF
 
-cmake --build build_$Configuration --config $Configuration
-cmake --install build_$Configuration --config $Configuration --prefix release/$Configuration
-Compress-Archive release\$Configuration\* release\opencv-windows-$Configuration.zip -Verbose
+  cmake --build build_$Configuration --config $Configuration
+  cmake --install build_$Configuration --config $Configuration --prefix release/$Configuration
+  Compress-Archive release\$Configuration\* release\opencv-windows-$Version-$Configuration.zip -Verbose
+  

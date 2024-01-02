@@ -20,18 +20,31 @@ jobs:
           - "Debug"
           - "Release"
 
+    defaults:
+      run:
+        shell: "bash"
+
     steps:
-      - uses: "actions/checkout@v3"
+      - name: "Get version"
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - uses: "actions/checkout@v4"
         with:
           submodules: "recursive"
 
       - name: "Run build-macos.sh"
-        run: "./build-macos.sh ${{ matrix.config }}"
+        run: "./build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
 
       - uses: "actions/upload-artifact@v3"
         with:
           name: "opencv-macos-${{ matrix.config }}"
-          path: "release/opencv-macos-${{ matrix.config }}.tar.gz"
+          path: "release/*.tar.gz"
 
   BuildLinux:
     runs-on: "ubuntu-22.04"
@@ -42,18 +55,31 @@ jobs:
           - "Debug"
           - "Release"
 
+    defaults:
+      run:
+        shell: "bash"
+
     steps:
-      - uses: "actions/checkout@v3"
+      - name: "Get version"
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - uses: "actions/checkout@v4"
         with:
           submodules: "recursive"
 
       - name: "Run build-linux.sh"
-        run: "./build-linux.sh ${{ matrix.config }}"
+        run: "./build-linux.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
 
       - uses: "actions/upload-artifact@v3"
         with:
           name: "opencv-linux-${{ matrix.config }}"
-          path: "release/opencv-linux-${{ matrix.config }}.tar.gz"
+          path: "release/*.tar.gz"
 
   BuildWindows:
     runs-on: "windows-2022"
@@ -65,42 +91,64 @@ jobs:
           - "Release"
 
     steps:
-      - uses: "actions/checkout@v3"
+      - name: "Get version"
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
+
+      - uses: "actions/checkout@v4"
         with:
           submodules: "recursive"
 
       - name: "Run Build-Windows.ps1"
-        run: "./Build-Windows.ps1 -Configuration ${{ matrix.config }}"
+        run: "./Build-Windows.ps1 -Configuration ${{ matrix.config }} -Version ${{ steps.get-version.outputs.version }}"
 
       - uses: "actions/upload-artifact@v3"
         with:
           name: "opencv-windows-${{ matrix.config }}"
-          path: "release/opencv-windows-${{ matrix.config }}.zip"
+          path: "release/*.zip"
 
   Release:
     runs-on: "ubuntu-22.04"
+
     if: "github.event_name == 'push' && contains(github.ref, 'refs/tags/')"
+
     needs:
       - "BuildMac"
       - "BuildLinux"
       - "BuildWindows"
+
     permissions:
       contents: "write"
+
+    defaults:
+      run:
+        shell: "bash"
+
     steps:
-      - name: "Get Metadata"
-        id: "metadata"
+      - name: "Get version"
         run: |
-          echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+          if [[ $GITHUB_REF =~ ^refs/tags/ ]]
+          then version="${GITHUB_REF#refs/tags/}"
+          else version=main
+          fi
+          printf "version=%s" "$version" > "$GITHUB_OUTPUT"
+        id: "get-version"
 
       - name: "Download build artifacts"
         uses: "actions/download-artifact@v3"
 
       - name: "Create Release"
-        uses: "softprops/action-gh-release@v1"
+        uses: "softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5"
         with:
           draft: true
-          tag_name: "${{ steps.metadata.outputs.version }}"
-          name: "${{ steps.metadata.outputs.version }}"
+          tag_name: "${{ steps.get-version.outputs.version }}"
+          name: "${{ steps.get-version.outputs.version }}"
           files: |
             ${{ github.workspace }}/**/*.tar.gz
             ${{ github.workspace }}/**/*.zip
