@@ -3,8 +3,9 @@ set -euo pipefail
 
 CONFIG="${1?}"
 VERSION="${2?}"
+OPENCV_DIR="${3-opencv}"
 
-cmake opencv -B build_$1 \
+cmake opencv "$OPENCV_DIR" -B build_$1 \
   -DCMAKE_INSTALL_PREFIX=/usr/local \
   -DCMAKE_BUILD_TYPE=$1 \
   -DOPENCV_FORCE_3RDPARTY_BUILD=ON \
