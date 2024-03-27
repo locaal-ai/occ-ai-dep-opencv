@@ -10,6 +10,13 @@ on:
     branches:
       - "main"
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: "${{ github.ref != 'refs/heads/main' }}"
+
+env:
+  OPENCV_VERSION: "4.9.0"
+
 jobs:
   BuildMac:
     runs-on: "macos-13"
@@ -34,14 +41,21 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
         with:
-          submodules: "recursive"
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - name: "Run build-macos.sh"
         run: "./build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
 
-      - uses: "actions/upload-artifact@v3"
+      - name: "Upload artifact"
+        uses: "actions/upload-artifact@v4"
         with:
           name: "opencv-macos-${{ matrix.config }}"
           path: "release/*.tar.gz"
@@ -69,14 +83,20 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
         with:
-          submodules: "recursive"
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - name: "Run build-linux.sh"
         run: "./build-linux.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
 
-      - uses: "actions/upload-artifact@v3"
+      - uses: "actions/upload-artifact@v4"
         with:
           name: "opencv-linux-${{ matrix.config }}"
           path: "release/*.tar.gz"
@@ -101,14 +121,20 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
         with:
-          submodules: "recursive"
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - name: "Run Build-Windows.ps1"
         run: "./Build-Windows.ps1 -Configuration ${{ matrix.config }} -Version ${{ steps.get-version.outputs.version }}"
 
-      - uses: "actions/upload-artifact@v3"
+      - uses: "actions/upload-artifact@v4"
         with:
           name: "opencv-windows-${{ matrix.config }}"
           path: "release/*.zip"
@@ -141,7 +167,7 @@ jobs:
         id: "get-version"
 
       - name: "Download build artifacts"
-        uses: "actions/download-artifact@v3"
+        uses: "actions/download-artifact@v4"
 
       - name: "Create Release"
         uses: "softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5"
