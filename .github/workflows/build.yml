@@ -10,6 +10,9 @@ on:
     branches:
       - "main"
 
+env:
+  OPENCV_VERSION: "4.9.0"
+
 jobs:
   BuildMac:
     runs-on: "macos-13"
@@ -34,12 +37,15 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
-        with:
-          submodules: "recursive"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
 
-      - name: "Run build-macos.sh"
-        run: "./build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
+        with:
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - uses: "actions/upload-artifact@v3"
         with:
@@ -69,9 +75,15 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
         with:
-          submodules: "recursive"
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - name: "Run build-linux.sh"
         run: "./build-linux.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
@@ -101,9 +113,15 @@ jobs:
           printf "version=%s" "$version" > "$GITHUB_OUTPUT"
         id: "get-version"
 
-      - uses: "actions/checkout@v4"
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Checkout OpenCV"
+        uses: "actions/checkout@v4"
         with:
-          submodules: "recursive"
+          repository: "opencv/opencv"
+          ref: "${{ env.OPENCV_VERSION }}"
+          path: "opencv"
 
       - name: "Run Build-Windows.ps1"
         run: "./Build-Windows.ps1 -Configuration ${{ matrix.config }} -Version ${{ steps.get-version.outputs.version }}"
