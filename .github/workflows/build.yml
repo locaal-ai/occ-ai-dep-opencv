@@ -10,6 +10,10 @@ on:
     branches:
       - "main"
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: "${{ github.ref != 'refs/heads/main' }}"
+
 env:
   OPENCV_VERSION: "4.9.0"
 
@@ -47,7 +51,11 @@ jobs:
           ref: "${{ env.OPENCV_VERSION }}"
           path: "opencv"
 
-      - uses: "actions/upload-artifact@v4"
+      - name: "Run build-macos.sh"
+        run: "./build-macos.sh ${{ matrix.config }} ${{ steps.get-version.outputs.version }}"
+
+      - name: "Upload artifact"
+        uses: "actions/upload-artifact@v4"
         with:
           name: "opencv-macos-${{ matrix.config }}"
           path: "release/*.tar.gz"
